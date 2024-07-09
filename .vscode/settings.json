@@ -1,0 +1,10 @@
+{
+    "editor.formatOnSave": true,
+    "tailwindCSS.classAttributes": [
+        "class",
+        "className",
+        "[\\s\\S]*Classes[\\s\\S]*",
+        "(?:classes|class|Classes|className)\\s*=\\s*`([^`]*)"
+    ],
+    "dotnet.defaultSolution": "Agent.sln"
+}
