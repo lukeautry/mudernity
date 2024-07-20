@@ -1,9 +1,10 @@
 import React from "react";
 import { createContext } from "use-context-selector";
-import { getAgentService, IAgentService } from "../agent/agent-service";
-import { ISession } from "../agent/agent-types";
+import type { IAgentService } from "../agent/agent-service";
+import { getAgentService } from "../agent/agent-service";
+import type { ISession } from "../agent/agent-types";
 import { asContextSelector } from "./as-context-selector";
-import { IProfile } from "../agent/agent-types";
+import type { IProfile } from "../agent/agent-types";
 import { useCommandHistoryContext } from "./CommandHistoryProvider";
 
 interface IAgentContext {

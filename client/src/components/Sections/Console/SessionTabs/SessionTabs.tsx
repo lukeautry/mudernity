@@ -2,7 +2,7 @@ import React from "react";
 import { useAgentContext } from "../../../../context/AgentProvider";
 import { TabList } from "../../../common/Tabs/TabList";
 import { Tab } from "../../../common/Tabs/Tab";
-import { SessionState } from "../../../../agent/agent-types";
+import type { SessionState } from "../../../../agent/agent-types";
 import { IconX } from "@tabler/icons-react";
 
 const StatusIndicator: React.FC<{ status: SessionState }> = ({ status }) => {

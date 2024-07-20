@@ -1,4 +1,4 @@
-import { ILocalStorage } from "./local-storage";
+import type { ILocalStorage } from "./local-storage";
 
 export const mockLocalStorage = (): ILocalStorage => {
   const storage: { [key: string]: string } = {};

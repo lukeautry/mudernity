@@ -1,4 +1,4 @@
-import { ILocalStorage } from "../../../../utils/local-storage";
+import type { ILocalStorage } from "../../../../utils/local-storage";
 import { mockLocalStorage } from "../../../../utils/mock-local-storage";
 import { uuidv4 } from "../../../../utils/uuid-v4";
 import { CommandHistoryManager } from "./command-history-manager";

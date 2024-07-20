@@ -1,4 +1,4 @@
-import { ILocalStorage } from "../../../../utils/local-storage";
+import type { ILocalStorage } from "../../../../utils/local-storage";
 
 type CommandHistory = { [sessionId: string]: string[] };
 type CursorPosition = { [sessionId: string]: number | undefined };

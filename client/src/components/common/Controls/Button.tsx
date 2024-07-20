@@ -1,4 +1,4 @@
-import { IconProps } from "@tabler/icons-react";
+import type { IconProps } from "@tabler/icons-react";
 import React from "react";
 import { classNames } from "../../../utils/class-names";
 

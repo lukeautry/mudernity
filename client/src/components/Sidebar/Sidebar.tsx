@@ -1,5 +1,6 @@
 import React from "react";
-import { Section, sections } from "../Sections/sections";
+import type { Section } from "../Sections/sections";
+import { sections } from "../Sections/sections";
 import { lightBorderClasses } from "../../constants/styles";
 import { useAppContext } from "../../context/AppProvider";
 

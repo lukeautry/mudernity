@@ -1,4 +1,4 @@
-import {
+import type {
   IProfileConnectionRequest,
   IProfileCreationRequest,
   IProfileDeletionRequest,
@@ -10,7 +10,7 @@ import {
   ISessionData,
   ISessionDisconnectRequest,
 } from "./agent-types";
-import { ISessionList } from "./agent-types";
+import type { ISessionList } from "./agent-types";
 
 export interface IAgentService {
   on<K extends keyof IAgentMessages>(

@@ -1,5 +1,6 @@
 import { Console } from "./Console/Console";
-import { IconProps, IconTerminal2, IconUserScan } from "@tabler/icons-react";
+import type { IconProps } from "@tabler/icons-react";
+import { IconTerminal2, IconUserScan } from "@tabler/icons-react";
 import { Profiles } from "./Profiles/Profiles";
 
 interface ISectionConfig {

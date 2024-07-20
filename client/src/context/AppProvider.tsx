@@ -1,7 +1,8 @@
 import React from "react";
 import { createContext } from "use-context-selector";
 import { asContextSelector } from "./as-context-selector";
-import { Section, isValidSection } from "../components/Sections/sections";
+import type { Section } from "../components/Sections/sections";
+import { isValidSection } from "../components/Sections/sections";
 import { AgentProvider } from "./AgentProvider";
 import { useQueryParams } from "../hooks/use-query-params";
 import { CommandHistoryProvider } from "./CommandHistoryProvider";

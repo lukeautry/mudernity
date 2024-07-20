@@ -1,12 +1,13 @@
 import React from "react";
-import { IFooterProps, ITableColumns, Table } from "../../common/Table/Table";
+import type { IFooterProps, ITableColumns } from "../../common/Table/Table";
+import { Table } from "../../common/Table/Table";
 import { EditableText } from "../../common/Controls/EditableText";
 import { useAgentContext } from "../../../context/AgentProvider";
 import { Input } from "../../common/Controls/Input";
 import { useImmer } from "use-immer";
 import { Button } from "../../common/Controls/Button";
 import { IconCheck, IconTerminal, IconTrash } from "@tabler/icons-react";
-import { IProfileCreationRequest } from "../../../agent/agent-types";
+import type { IProfileCreationRequest } from "../../../agent/agent-types";
 import { produce } from "immer";
 import { useAppContext } from "../../../context/AppProvider";
 
