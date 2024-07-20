@@ -26,9 +26,9 @@ namespace Agent.Services
 
         internal void ResumeSessions()
         {
-            var activeSessions = context.SessionRepository.GetActiveSessions();
+            var sessions = context.SessionRepository.GetSessions();
 
-            foreach (var session in activeSessions)
+            foreach (var session in sessions)
             {
                 context.ConnectionPool.Resume(session.Id);
             }

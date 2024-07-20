@@ -4,6 +4,7 @@ using Agent.Common;
 using Agent.Data;
 using Agent.Types.Models;
 using Agent.Types.Responses;
+using Agent.Utilities;
 
 namespace Agent.Services
 {
@@ -29,13 +30,7 @@ namespace Agent.Services
                 var buffer = _buffers.GetValueOrDefault(session.Id, []);
                 if (buffer.Length > 0)
                 {
-                    var sessionData = new SessionData
-                    {
-                        SessionId = session.Id,
-                        Data = buffer
-                    };
-
-                    sessionDataChannel.Publish(sessionData);
+                    PublishSessionData(session.Id, buffer);
                 }
 
                 return;
@@ -54,6 +49,12 @@ namespace Agent.Services
 
                 Console.WriteLine($"Connected to the MUD server for session {session.Id}.");
 
+                // print out a green message that says something like # CONNECTED TO HOSTNAME:PORT
+                PublishSessionData(session.Id, new AnsiMessageBuilder()
+                    .AddText($"# CONNECTED TO {session.Hostname}:{session.Port}", AnsiMessageBuilder.Color.BrightGreen)
+                    .AddNewLine()
+                    .Build());
+
                 // Start reading from the server
                 await ReadFromServer(session.Id, networkStream);
             }
@@ -64,6 +65,17 @@ namespace Agent.Services
 
                 CleanupSession(session.Id);
             }
+        }
+
+        private void PublishSessionData(string sessionId, byte[] data)
+        {
+            var sessionData = new SessionData
+            {
+                SessionId = sessionId,
+                Data = data
+            };
+
+            sessionDataChannel.Publish(sessionData);
         }
 
         private async Task ReadFromServer(string sessionId, NetworkStream networkStream)
@@ -84,14 +96,11 @@ namespace Agent.Services
 
                     _buffers[sessionId] = newBuffer;
 
-                    var sessionData = new SessionData
-                    {
-                        SessionId = sessionId,
-                        Data = byteArr
-                    };
-
-                    sessionDataChannel.Publish(sessionData);
+                    PublishSessionData(sessionId, byteArr);
                 }
+
+                Console.WriteLine($"MUD server disconnected for session {sessionId}.");
+                Disconnect(sessionId);
             }
             catch (Exception ex)
             {
@@ -107,6 +116,11 @@ namespace Agent.Services
                 sessionRepository.UpdateState(sessionId, SessionState.Inactive);
 
                 _connections.Remove(sessionId);
+
+                PublishSessionData(sessionId, new AnsiMessageBuilder()
+                    .AddText("# DISCONNECTED FROM SERVER", AnsiMessageBuilder.Color.BrightRed)
+                    .AddNewLine()
+                    .Build());
 
                 Console.WriteLine($"Disconnected from the MUD server for session {sessionId}.");
             }
@@ -150,23 +164,17 @@ namespace Agent.Services
         /// </summary>
         internal void Resume(string sessionId)
         {
+            var buffer = _buffers.GetValueOrDefault(sessionId, []);
+            if (buffer.Length > 0)
+            {
+                PublishSessionData(sessionId, buffer);
+            }
+
             if (!_connections.ContainsKey(sessionId))
             {
                 Console.WriteLine($"No active connection found for session {sessionId}.");
                 sessionRepository.UpdateState(sessionId, SessionState.Inactive);
                 return;
-            }
-
-            var buffer = _buffers.GetValueOrDefault(sessionId, []);
-            if (buffer.Length > 0)
-            {
-                var sessionData = new SessionData
-                {
-                    SessionId = sessionId,
-                    Data = buffer
-                };
-
-                sessionDataChannel.Publish(sessionData);
             }
 
             var (client, _) = _connections[sessionId];

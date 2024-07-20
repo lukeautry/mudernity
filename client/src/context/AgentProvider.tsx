@@ -4,6 +4,7 @@ import { getAgentService, IAgentService } from "../agent/agent-service";
 import { ISession } from "../agent/agent-types";
 import { asContextSelector } from "./as-context-selector";
 import { IProfile } from "../agent/agent-types";
+import { useCommandHistoryContext } from "./CommandHistoryProvider";
 
 interface IAgentContext {
   service: IAgentService;
@@ -30,6 +31,7 @@ export const AgentProvider: React.FC<React.PropsWithChildren> = ({
   const [sessions, setSessions] = React.useState<ISession[]>();
   const [profiles, setProfiles] = React.useState<IProfile[]>();
   const [sessionId, setSessionId] = React.useState<string>();
+  const clearCommands = useCommandHistoryContext((c) => c.clearCommands);
   const handlers = React.useRef(
     {} as { [sessionId: string]: SessionDataHandler },
   );
@@ -112,8 +114,9 @@ export const AgentProvider: React.FC<React.PropsWithChildren> = ({
       )?.id;
 
       setSessionId(newActiveSessionId ?? "");
+      clearCommands(sessionId);
     },
-    [service, sessions, setSessionId],
+    [service, sessions, setSessionId, clearCommands],
   );
 
   const context = React.useMemo((): IAgentContext | undefined => {

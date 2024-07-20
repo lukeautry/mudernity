@@ -6,6 +6,7 @@ import { Button } from "../../../common/Controls/Button";
 import { lightBorderClasses } from "../../../../constants/styles";
 import { useAgentContext } from "../../../../context/AgentProvider";
 import "./SessionTerminal.scss";
+import { useCommandHistoryContext } from "../../../../context/CommandHistoryProvider";
 
 interface ITerminalSessionProps {}
 
@@ -16,6 +17,11 @@ export const SessionTerminal: React.FC<ITerminalSessionProps> = () => {
   const service = useAgentContext((c) => c.service);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const addCommand = useCommandHistoryContext((c) => c.addCommand);
+  const getPreviousCommand = useCommandHistoryContext(
+    (c) => c.getPreviousCommand,
+  );
+  const getNextCommand = useCommandHistoryContext((c) => c.getNextCommand);
   const [command, setCommand] = React.useState("");
 
   React.useEffect(() => {
@@ -55,9 +61,10 @@ export const SessionTerminal: React.FC<ITerminalSessionProps> = () => {
       command,
     });
 
-    // select all input text
+    addCommand(session.id, command);
+
     inputRef.current?.select();
-  }, [command, service, session?.id]);
+  }, [addCommand, command, service, session?.id]);
 
   const onKeyDown: React.KeyboardEventHandler<HTMLInputElement> =
     React.useCallback(
@@ -65,8 +72,27 @@ export const SessionTerminal: React.FC<ITerminalSessionProps> = () => {
         if (e.key === "Enter") {
           onSend();
         }
+
+        if (session?.id) {
+          const cmd = (() => {
+            if (e.key === "ArrowUp") {
+              return getPreviousCommand(session.id);
+            }
+
+            if (e.key === "ArrowDown") {
+              return getNextCommand(session.id);
+            }
+          })();
+          if (cmd) {
+            setCommand(cmd);
+
+            setTimeout(() => {
+              inputRef.current?.select();
+            }, 0);
+          }
+        }
       },
-      [onSend],
+      [getNextCommand, getPreviousCommand, onSend, session?.id],
     );
 
   const toggleConnectionButton = React.useMemo(() => {
@@ -113,7 +139,7 @@ export const SessionTerminal: React.FC<ITerminalSessionProps> = () => {
           inputRef={inputRef}
           className="flex-1"
           type="text"
-          placeholder="Message"
+          placeholder="Command"
           value={command}
           onChange={(e) => setCommand(e.target.value)}
           onKeyDown={onKeyDown}

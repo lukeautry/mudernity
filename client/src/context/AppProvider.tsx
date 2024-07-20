@@ -4,6 +4,7 @@ import { asContextSelector } from "./as-context-selector";
 import { Section, isValidSection } from "../components/Sections/sections";
 import { AgentProvider } from "./AgentProvider";
 import { useQueryParams } from "../hooks/use-query-params";
+import { CommandHistoryProvider } from "./CommandHistoryProvider";
 
 interface IAppContext {
   section: Section;
@@ -52,7 +53,9 @@ export const AppProvider: React.FC<React.PropsWithChildren> = ({
 
   return (
     <AppContext.Provider value={context}>
-      <AgentProvider>{children}</AgentProvider>
+      <CommandHistoryProvider>
+        <AgentProvider>{children}</AgentProvider>
+      </CommandHistoryProvider>
     </AppContext.Provider>
   );
 };
