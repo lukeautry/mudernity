@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.WebSockets;
-using System.Text;
 using Agent;
 using Agent.Common;
 using Agent.Data;
@@ -8,23 +7,24 @@ using Agent.Services;
 using Agent.Socket;
 using Agent.Types.Responses;
 
-Console.WriteLine("Agent starting...");
-
-var sessionChannel = new Channel<SessionList>();
-var profileChannel = new Channel<ProfileList>();
-var sessionDataChannel = new Channel<SessionData>();
-var store = await DatastoreService.Initialize(sessionChannel, profileChannel, false);
+var logger = new LoggerService(LogLevel.Debug);
+var sessionChannel = new Channel<SessionList>(logger);
+var profileChannel = new Channel<ProfileList>(logger);
+var sessionDataChannel = new Channel<SessionData>(logger);
+var store = await DatastoreService.Initialize(sessionChannel, profileChannel, logger, false);
 var sessionRepository = new SessionRepository(store);
-var connectionPool = new ConnectionPoolService(sessionRepository, sessionDataChannel);
+var connectionPool = new ConnectionPoolService(sessionRepository, sessionDataChannel, logger);
 var profileRepository = new ProfileRepository(store);
 
 var httpListener = new HttpListener();
 httpListener.Prefixes.Add("http://localhost:5000/");
 httpListener.Start();
 
-Console.WriteLine("Agent serving at at ws://localhost:5000");
+logger.Information($"Agent serving at http://localhost:5000");
 
-async Task AcceptWebSocketClients(HttpListener listener)
+var staticFileServer = new StaticFileServer();
+
+async Task ProcessRequests(HttpListener listener)
 {
     while (true)
     {
@@ -35,14 +35,11 @@ async Task AcceptWebSocketClients(HttpListener listener)
             var webSocketContext = await httpContext.AcceptWebSocketAsync(null);
             var webSocket = webSocketContext.WebSocket;
 
-            Console.WriteLine("Agent connected to a client");
-
-            await HandleWebSocketConnection(webSocket);
+            _ = HandleWebSocketConnection(webSocket); // Start WebSocket handling
         }
         else
         {
-            httpContext.Response.StatusCode = 400;
-            httpContext.Response.Close();
+            _ = staticFileServer.ServeStaticFileAsync(httpContext); // Serve static files
         }
     }
 }
@@ -74,12 +71,14 @@ async Task HandleWebSocketConnection(WebSocket webSocket)
         await writer.Write(profileList.ToJson());
     });
 
+
     await profileHandler(context.ProfileRepository.GetProfileList());
 
     var sessionDataHandler = sessionDataChannel.Subscribe(async sessionData =>
     {
         await writer.Write(sessionData.ToJson());
     });
+
 
     var processor = new Processor(context);
 
@@ -92,4 +91,4 @@ async Task HandleWebSocketConnection(WebSocket webSocket)
     sessionDataChannel.Unsubscribe(sessionDataHandler);
 }
 
-await AcceptWebSocketClients(httpListener);
+await ProcessRequests(httpListener);

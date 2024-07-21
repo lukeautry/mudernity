@@ -18,7 +18,6 @@ namespace Agent.Socket
 
         private async Task ProcessMessage(string message)
         {
-            Console.WriteLine($"Received message: {message}");
             await dispatcher.Dispatch(message);
         }
     }

@@ -8,7 +8,8 @@ namespace Agent.Common
         {
             try
             {
-                return JsonSerializer.Deserialize<T>(json, Constants.SerializerOptions);
+                var options = Constants.SerializerOptions;
+                return (T?)JsonSerializer.Deserialize(json, typeof(T), options);
             }
             catch (Exception)
             {

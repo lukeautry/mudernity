@@ -6,7 +6,8 @@ namespace Agent.Common
     {
         public static string Serialize<T>(T obj)
         {
-            return JsonSerializer.Serialize(obj, Constants.SerializerOptions);
+            var options = Constants.SerializerOptions;
+            return JsonSerializer.Serialize(obj, typeof(T), options);
         }
     }
 }

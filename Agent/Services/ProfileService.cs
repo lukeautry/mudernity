@@ -6,7 +6,7 @@ namespace Agent.Services
 {
     public class ProfileService(ProgramContext context)
     {
-        internal async Task HandleCreateProfile(string message)
+        internal Task HandleCreateProfile(string message)
         {
             var request = Deserializer.Deserialize<ProfileCreationRequest>(message);
             if (request != null)
@@ -23,18 +23,22 @@ namespace Agent.Services
                     UpdatedAt = currentDate
                 });
             }
+
+            return Task.CompletedTask;
         }
 
-        internal async Task HandleDeleteProfile(string message)
+        internal Task HandleDeleteProfile(string message)
         {
             var request = ProfileDeletionRequest.Parse(message);
             if (request != null)
             {
                 context.ProfileRepository.DeleteProfile(request.Id);
             }
+
+            return Task.CompletedTask;
         }
 
-        internal async Task HandleUpdateProfile(string message)
+        internal Task HandleUpdateProfile(string message)
         {
             var request = ProfileUpdateRequest.Parse(message);
 
@@ -42,9 +46,11 @@ namespace Agent.Services
             {
                 context.ProfileRepository.UpdateProfile(request.Profile);
             }
+
+            return Task.CompletedTask;
         }
 
-        internal async Task HandleConnectProfile(string message)
+        internal Task HandleConnectProfile(string message)
         {
             var request = ProfileConnectionRequest.Parse(message);
 
@@ -66,6 +72,8 @@ namespace Agent.Services
                     context.ConnectionPool.Connect(session);
                 }
             }
+
+            return Task.CompletedTask;
         }
     }
 }

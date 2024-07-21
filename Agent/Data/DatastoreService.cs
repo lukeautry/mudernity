@@ -1,4 +1,5 @@
 using Agent.Common;
+using Agent.Services;
 using Agent.Types.Responses;
 
 namespace Agent.Data
@@ -8,16 +9,18 @@ namespace Agent.Data
         private Datastore _datastore;
         private readonly Channel<SessionList> _sessionChannel;
         private readonly Channel<ProfileList> _profileChannel;
+        private readonly LoggerService _logger;
         private readonly WriteManager? _writeManager;
 
         private const string DbPath = "db.json";
         private const int SaveIntervalMilliseconds = 1000; // Adjust this value to control the interval
 
-        private DatastoreService(Datastore datastore, Channel<Types.Responses.SessionList> sessionChannel, Channel<Types.Responses.ProfileList> profileChannel, bool inMemory)
+        private DatastoreService(Datastore datastore, Channel<SessionList> sessionChannel, Channel<ProfileList> profileChannel, bool inMemory, LoggerService logger)
         {
             _datastore = datastore;
             _sessionChannel = sessionChannel;
             _profileChannel = profileChannel;
+            _logger = logger;
 
             if (!inMemory)
             {
@@ -25,20 +28,17 @@ namespace Agent.Data
             }
         }
 
-        public static async Task<DatastoreService> Initialize(Channel<Types.Responses.SessionList> sessionChannel, Channel<Types.Responses.ProfileList> profileChannel, bool inMemory)
+        public static async Task<DatastoreService> Initialize(Channel<SessionList> sessionChannel, Channel<ProfileList> profileChannel, LoggerService logger, bool inMemory)
         {
             var datastore = Datastore.GetDefault();
             if (!inMemory)
             {
-                Console.WriteLine("Initializing data store...");
-
                 try
                 {
                     var db = await File.ReadAllTextAsync(DbPath);
 
                     if (!string.IsNullOrEmpty(db))
                     {
-                        Console.WriteLine($"Reading from {DbPath}...");
                         var result = Deserializer.Deserialize<Datastore>(db);
                         if (result != null)
                         {
@@ -48,11 +48,11 @@ namespace Agent.Data
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Error reading from {DbPath}: {e.Message}");
+                    logger.Error($"Error reading from {DbPath}: {e.Message}");
                 }
             }
 
-            return new DatastoreService(datastore, sessionChannel, profileChannel, inMemory);
+            return new DatastoreService(datastore, sessionChannel, profileChannel, inMemory, logger);
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Agent.Data
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error writing to db.json: {e.Message}");
+                _logger.Error($"Error writing to {DbPath}: {e.Message}");
             }
         }
     }

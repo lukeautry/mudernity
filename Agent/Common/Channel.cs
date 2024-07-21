@@ -1,3 +1,5 @@
+using Agent.Services;
+
 namespace Agent.Common
 {
     public interface IChannel<T>
@@ -7,9 +9,10 @@ namespace Agent.Common
         Task Publish(T message);
     }
 
-    public class Channel<T>
+    public class Channel<T>(LoggerService logger)
     {
         private readonly List<Func<T, Task>> _handlers = [];
+        private readonly LoggerService logger = logger;
 
         public Func<T, Task> Subscribe(Func<T, Task> handler)
         {
@@ -27,7 +30,7 @@ namespace Agent.Common
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Error unsubscribing handler: {e.Message}");
+                    logger.Error($"Error unsubscribing handler: {e.Message}");
                 }
             }
         }

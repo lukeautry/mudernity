@@ -12,7 +12,7 @@ namespace Agent.Services
     /// Service for managing connection pools to MUD servers. Connections are pooled by session ID.
     /// Since sessions can go away and come back, we need to be able to re-use connections.
     /// </summary>
-    public class ConnectionPoolService(SessionRepository sessionRepository, Channel<SessionData> sessionDataChannel)
+    public class ConnectionPoolService(SessionRepository sessionRepository, Channel<SessionData> sessionDataChannel, LoggerService logger)
     {
         private readonly Dictionary<string, (TcpClient client, NetworkStream stream)> _connections = [];
 
@@ -22,10 +22,10 @@ namespace Agent.Services
         {
             if (_connections.ContainsKey(session.Id))
             {
-                Console.WriteLine($"Already connected to the server for session {session.Id}.");
+                logger.Debug($"Already connected to the server for session {session.Id}.");
 
                 // output existing buffer if it exists
-                Console.WriteLine($"Outputting existing buffer for session {session.Id}.");
+                logger.Debug($"Outputting existing buffer for session {session.Id}.");
 
                 var buffer = _buffers.GetValueOrDefault(session.Id, []);
                 if (buffer.Length > 0)
@@ -47,7 +47,7 @@ namespace Agent.Services
 
                 _connections[session.Id] = (tcpClient, networkStream);
 
-                Console.WriteLine($"Connected to the MUD server for session {session.Id}.");
+                logger.Debug($"Connected to the MUD server for session {session.Id}.");
 
                 // print out a green message that says something like # CONNECTED TO HOSTNAME:PORT
                 PublishSessionData(session.Id, new AnsiMessageBuilder()
@@ -60,7 +60,7 @@ namespace Agent.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error connecting to the server for session {session.Id}: {ex.Message}");
+                logger.Error($"Error connecting to the server for session {session.Id}: {ex.Message}");
                 sessionRepository.UpdateState(session.Id, SessionState.Inactive);
 
                 CleanupSession(session.Id);
@@ -99,12 +99,12 @@ namespace Agent.Services
                     PublishSessionData(sessionId, byteArr);
                 }
 
-                Console.WriteLine($"MUD server disconnected for session {sessionId}.");
+                logger.Debug($"MUD server disconnected for session {sessionId}.");
                 Disconnect(sessionId);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error reading from the server for session {sessionId}: {ex.Message}");
+                logger.Error($"Error reading from the server for session {sessionId}: {ex.Message}");
             }
         }
 
@@ -122,15 +122,15 @@ namespace Agent.Services
                     .AddNewLine()
                     .Build());
 
-                Console.WriteLine($"Disconnected from the MUD server for session {sessionId}.");
+                logger.Debug($"Disconnected from the MUD server for session {sessionId}.");
             }
             else
             {
-                Console.WriteLine($"No active connection found for session {sessionId}.");
+                logger.Warning($"No active connection found for session {sessionId}.");
             }
         }
 
-        internal async Task CloseSessionConnection(string id)
+        internal Task CloseSessionConnection(string id)
         {
             if (_connections.TryGetValue(id, out var connection))
             {
@@ -139,12 +139,14 @@ namespace Agent.Services
                 _connections.Remove(id);
                 _buffers.Remove(id);
 
-                Console.WriteLine($"Disconnected from the MUD server for session {id}.");
+                logger.Debug($"Disconnected from the MUD server for session {id}.");
             }
             else
             {
-                Console.WriteLine($"No active connection found for session {id}.");
+                logger.Warning($"No active connection found for session {id}.");
             }
+
+            return Task.CompletedTask;
         }
 
         private void CleanupSession(string sessionId)
@@ -172,7 +174,7 @@ namespace Agent.Services
 
             if (!_connections.ContainsKey(sessionId))
             {
-                Console.WriteLine($"No active connection found for session {sessionId}.");
+                logger.Warning($"No active connection found for session {sessionId}.");
                 sessionRepository.UpdateState(sessionId, SessionState.Inactive);
                 return;
             }
@@ -181,12 +183,12 @@ namespace Agent.Services
             // check if this connection is still active
             if (!client.Connected)
             {
-                Console.WriteLine($"Connection for session {sessionId} is no longer active.");
+                logger.Warning($"Connection for session {sessionId} is no longer active.");
                 sessionRepository.UpdateState(sessionId, SessionState.Inactive);
                 return;
             }
 
-            Console.WriteLine($"Resuming connection for session {sessionId}.");
+            logger.Debug($"Resuming connection for session {sessionId}.");
         }
 
         internal async Task SendCommand(string id, string command)
@@ -201,12 +203,12 @@ namespace Agent.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error sending command to the server for session {id}: {ex.Message}");
+                    logger.Error($"Error sending command to the server for session {id}: {ex.Message}");
                 }
             }
             else
             {
-                Console.WriteLine($"No active connection found for session {id}.");
+                logger.Warning($"No active connection found for session {id}.");
             }
         }
     }

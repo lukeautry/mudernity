@@ -9,7 +9,8 @@ namespace Agent.Common
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-            WriteIndented = true
+            WriteIndented = true,
+            TypeInfoResolver = SerializerContext.Default
         };
     }
 }

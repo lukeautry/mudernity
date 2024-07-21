@@ -15,13 +15,15 @@ namespace Agent.Services
             }
         }
 
-        internal async Task HandleConnectSession(string message)
+        internal Task HandleConnectSession(string message)
         {
             var request = SessionConnectRequest.Parse(message);
             if (request != null)
             {
-                await ConnectSession(request.Id);
+                ConnectSession(request.Id);
             }
+
+            return Task.CompletedTask;
         }
 
         internal void ResumeSessions()
@@ -34,16 +36,18 @@ namespace Agent.Services
             }
         }
 
-        internal async Task HandleDisconnectSession(string message)
+        internal Task HandleDisconnectSession(string message)
         {
             var request = SessionDisconnectRequest.Parse(message);
             if (request != null)
             {
                 context.ConnectionPool.Disconnect(request.Id);
             }
+
+            return Task.CompletedTask;
         }
 
-        private async Task ConnectSession(string sessionId)
+        private void ConnectSession(string sessionId)
         {
             var session = context.SessionRepository.GetSession(sessionId);
             if (session != null)
