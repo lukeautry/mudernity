@@ -1,0 +1,38 @@
+name: UI CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '21.7.1'
+
+      - name: Install client dependencies
+        working-directory: ./client
+        run: npm install
+
+      - name: Lint client code
+        working-directory: ./client
+        run: npm run lint
+
+      - name: Build client code
+        working-directory: ./client
+        run: npm run ts:build
+
+      - name: Test client code
+        working-directory: ./client
+        run: npm test

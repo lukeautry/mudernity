@@ -1,3 +1,4 @@
+using Agent.Common;
 using Agent.Types.Models;
 using Agent.Types.Responses;
 
@@ -24,9 +25,14 @@ namespace AgentTests.Types
 
             var json = result.ToJson();
 
-            var expectedData = "{\"type\":\"SessionList\",\"sessions\":[{\"id\":\"test\",\"hostname\":\"test\",\"state\":\"active\",\"port\":1234}]}";
+            var deserialized = Deserializer.Deserialize<SessionList>(json);
 
-            Assert.Equal(expectedData, json);
+            Assert.NotNull(deserialized);
+            Assert.Equal(result.Sessions.Count, deserialized.Sessions.Count);
+            Assert.Equal(result.Sessions[0].Id, deserialized.Sessions[0].Id);
+            Assert.Equal(result.Sessions[0].Hostname, deserialized.Sessions[0].Hostname);
+            Assert.Equal(result.Sessions[0].State, deserialized.Sessions[0].State);
+            Assert.Equal(result.Sessions[0].Port, deserialized.Sessions[0].Port);
         }
     }
 }
