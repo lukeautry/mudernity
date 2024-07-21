@@ -4,3 +4,4 @@ obj
 *.db-journal
 db.json
 Agent/static
+builds
